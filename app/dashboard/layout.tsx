@@ -28,10 +28,11 @@ export default async function DashboardLayout({
       <nav className="bg-white border-b px-6 py-4">
         <span className="font-bold">Padel Booking</span>
       </nav>
+
+      <main className="p-6">{children}</main>
       <div>
         <LogoutButton />
       </div>
-      <main className="p-6">{children}</main>
     </div>
   );
 }

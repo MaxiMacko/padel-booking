@@ -16,7 +16,7 @@ export function LogoutButton() {
       //   window.location.href = "/login";
       // }}
       onClick={onLogout}
-      className="text-sm text-red-500"
+      className="text-sm text-red-500 cursor-pointer"
     >
       Logout
     </button>
