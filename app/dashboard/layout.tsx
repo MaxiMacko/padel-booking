@@ -24,8 +24,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <nav className="bg-white border-b px-6 py-4">
+    <div className="min-h-screen bg-slate-100 text-black">
+      <nav className="border-b px-6 py-4">
         <span className="font-bold">Padel Booking</span>
       </nav>
 
