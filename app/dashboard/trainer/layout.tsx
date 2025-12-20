@@ -23,9 +23,9 @@ export default async function TrainerLayout({
     .eq("id", user.id)
     .single();
 
-  // if (profile?.role !== "trainer") {
-  // redirect("/dashboard/client/calendar");
-  // }
+  if (profile?.role !== "trainer") {
+    redirect("/dashboard/client/calendar");
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">

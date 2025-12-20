@@ -25,6 +25,17 @@ export async function GET() {
     `)
     .order("created_at", { ascending: false });
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "trainer") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }

@@ -27,16 +27,6 @@ export async function POST(req: Request) {
 export async function GET() {
   const supabase = await createSupabaseServerClient();
 
-  // const { data, error } = await supabase
-  //   .from("bookings")
-  //   .select(`
-  //     id,
-  //     status,
-  //     created_at,
-  //     client:profiles(email),
-  //     schedule:trainer_schedules(start_time, end_time)
-  //   `);
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
