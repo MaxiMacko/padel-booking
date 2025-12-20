@@ -18,7 +18,7 @@ export default function ClientCalendarPage() {
     const res = await fetch("/api/trainer-schedules");
     const data = await res.json();
     setEvents(
-      (data || []).map((slot: any) => ({
+      (data || []).filter((slot: any) => slot.is_available).map((slot: any) => ({
         id: slot.id,
         start: slot.start_time,
         end: slot.end_time,
