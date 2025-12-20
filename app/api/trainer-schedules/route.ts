@@ -62,3 +62,24 @@ export async function GET() {
 
   return NextResponse.json(data);
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from("trainer_schedules")
+    .delete()
+    .eq("id", params.id);
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json({ success: true });
+}
