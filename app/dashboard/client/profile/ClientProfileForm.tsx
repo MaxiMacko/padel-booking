@@ -26,18 +26,11 @@ export default function ClientProfileForm({
     e.preventDefault();
     setUpdating(true);
 
-    // console.log('name', name);/
-    // console.log('phone', phone);
-
-    // console.log('userId', userId);
-
     const { data: row } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
-
-    console.log("Profile before update:", row);
 
     const { data, error } = await supabase
       .from("profiles")
