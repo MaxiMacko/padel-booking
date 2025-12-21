@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseRouteClient } from "@/lib/supabase/route";
 
 export async function POST(req: Request) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseRouteClient();
 
   const {
     data: { user },
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseRouteClient();
 
   const {
     data: { user },
@@ -67,7 +67,7 @@ export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseRouteClient();
 
   const { error } = await supabase
     .from("trainer_schedules")

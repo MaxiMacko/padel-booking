@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseRouteClient } from "@/lib/supabase/route";
 
 export async function POST(req: Request) {
   const { schedule_id } = await req.json();
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseRouteClient();
 
   const {
     data: { user },
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseRouteClient();
 
   const {
     data: { user },
