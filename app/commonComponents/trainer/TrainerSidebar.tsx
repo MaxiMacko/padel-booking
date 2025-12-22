@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoutButton } from "../logoutButton";
 
 const nav = [
   { href: "/dashboard/trainer/calendar", label: "📅 My schedule" },
@@ -35,6 +36,7 @@ export default function TrainerSidebar() {
             </Link>
           );
         })}
+        <LogoutButton />
       </nav>
     </aside>
   );

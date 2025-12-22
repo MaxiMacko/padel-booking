@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoutButton } from "../logoutButton";
 
 const nav = [
   { href: "/dashboard/client/calendar", label: "📅 Calendar" },
@@ -35,6 +36,7 @@ export default function ClientSidebar() {
             </Link>
           );
         })}
+        <LogoutButton />
       </nav>
     </aside>
   );
