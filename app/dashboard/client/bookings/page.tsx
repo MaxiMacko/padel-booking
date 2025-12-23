@@ -1,10 +1,11 @@
 "use client";
 
+import { BOOKING_STATUS, BookingStatus } from "@/lib/types/types";
 import { useEffect, useState } from "react";
 
 type Booking = {
   id: string;
-  status: string;
+  status: BookingStatus;
   schedule: {
     start_time: string;
     end_time: string;
@@ -23,8 +24,6 @@ export default function ClientBookingsPage() {
     const res = await fetch("/api/bookings");
     const data = await res.json();
 
-    console.log('bookings data', data);
-
     setBookings(data || []);
   }
 
@@ -38,7 +37,7 @@ export default function ClientBookingsPage() {
     if (res.ok) {
       setBookings(prev =>
         prev.map(b =>
-          b.id === id ? { ...b, status: "canceled" } : b
+          b.id === id ? { ...b, status: BOOKING_STATUS.CANCELED } : b
         )
       );
     } else {
@@ -50,6 +49,7 @@ export default function ClientBookingsPage() {
   function handleReschedule(id: string) {
     alert("Reschedule UI — наступний крок");
   }
+
 
   return (
     <div className="bg-white p-6 rounded-xl">
@@ -69,18 +69,18 @@ export default function ClientBookingsPage() {
             </p>
           </div>
 
-          {booking.status === "booked" && (
+          {booking.status === BOOKING_STATUS.CONFIRMED && (
             <div className="flex gap-2">
               <button
                 onClick={() => handleCancel(booking.id)}
                 disabled={loading}
-                className="px-3 py-1 text-sm bg-red-500 text-white rounded"
+                className="px-3 py-1 text-sm bg-red-500 text-white rounded cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleReschedule(booking.id)}
-                className="px-3 py-1 text-sm bg-blue-500 text-white rounded"
+                className="px-3 py-1 text-sm bg-blue-500 text-white rounded cursor-pointer"
               >
                 Reschedule
               </button>

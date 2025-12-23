@@ -3,12 +3,13 @@ import { createSupabaseRouteClient } from "@/lib/supabase/route";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createSupabaseRouteClient();
+  const { id } = await params;
 
   const { error } = await supabase.rpc("cancel_booking", {
-    p_booking_id: params.id,
+    p_booking_id: id,
   });
 
   if (error) {
