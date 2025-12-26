@@ -20,12 +20,11 @@ export default function ClientCalendarPage() {
   }, []);
 
   async function loadSlots() {
-    const res = await fetch("/api/trainer-schedules");
+    const res = await fetch("/api/client/available-slots");
     const data = await res.json();
 
     setEvents(
       (data || [])
-        .filter((slot: any) => slot.is_available)
         .map((slot: any) => ({
           id: slot.id,
           start: slot.start_time,

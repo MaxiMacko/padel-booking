@@ -13,7 +13,7 @@ export default function TrainerCalendarPage() {
   }, []);
 
   async function loadSlots() {
-    const res = await fetch("/api/trainer-schedules");
+    const res = await fetch("/api/trainer/schedules");
     const data = await res.json();
 
     setEvents(

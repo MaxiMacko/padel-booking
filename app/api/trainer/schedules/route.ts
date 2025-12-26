@@ -28,7 +28,6 @@ export async function POST(req: Request) {
 }
 
 
-
 export async function GET() {
   const supabase = await createSupabaseRouteClient();
 
@@ -36,26 +35,27 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Якщо залогінений тренер — показуємо тільки його слоти
-  if (user) {
-    const { data, error } = await supabase
-      .from("trainer_schedules")
-      .select("*")
-      .eq('trainer_id', user.id)
-      .order("start_time");
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json(data);
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Публічний доступ (клієнти)
+  // перевіряємо роль
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "trainer") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Якщо залогінений тренер — показуємо тільки його слоти
+
   const { data, error } = await supabase
     .from("trainer_schedules")
     .select("*")
-    .eq("is_available", true)
+    .eq('trainer_id', user.id)
     .order("start_time");
 
   if (error) {
