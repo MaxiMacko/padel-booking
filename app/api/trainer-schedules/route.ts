@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { createSupabaseRouteClient } from "@/lib/supabase/route";
 
 export async function POST(req: Request) {
@@ -40,6 +41,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("trainer_schedules")
       .select("*")
+      .eq('trainer_id', user.id)
       .order("start_time");
 
     if (error) {
