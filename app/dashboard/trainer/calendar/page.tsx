@@ -32,7 +32,7 @@ export default function TrainerCalendarPage() {
   }
 
   async function handleSelect(info: any) {
-    await fetch("/api/trainer-schedules", {
+    await fetch("/api/trainer/schedules", {
       method: "POST",
       body: JSON.stringify({
         start_time: info.startStr,

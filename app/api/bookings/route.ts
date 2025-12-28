@@ -34,12 +34,12 @@ export async function GET() {
   const { data, error } = await supabase
     .from("bookings")
     .select(`
-   id,
-  status,
-  schedule:trainer_schedules (
-    start_time,
-    end_time
-  )
+    id,
+    status,
+    schedule:trainer_schedules!trainer_schedule_id (
+      start_time,
+      end_time
+    )
   `)
     .eq("client_id", user?.id);
 
