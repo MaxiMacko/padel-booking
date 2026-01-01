@@ -7,7 +7,7 @@ enum UserRole {
 
 export const registerSchema = z.object({
   email: z.string().email("Invalid email"),
-  password: z.string().min(8, "Password too short"),
+  password: z.string().min(8, "Password too short, min 8 characters"),
   confirmPassword: z.string(),
   role: z.enum(UserRole),
   phone: z.string().optional(),

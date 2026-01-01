@@ -1,55 +1,45 @@
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/passwords";
-import { NextResponse } from "next/server";
+import { registerSchema } from "@/lib/validators/register";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, name, phone, role } = body;
 
-    // 1. Валідація
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
-    }
+    // Валідуємо через Zod
+    const parsed = registerSchema.parse(body);
 
-    // 2. Перевірка на існування
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    // Перевірка чи email вже зайнятий
+    const existing = await prisma.user.findUnique({
+      where: { email: parsed.email },
     });
 
-    if (existingUser) {
+    if (existing) {
       return NextResponse.json(
-        { error: "Email already registered" },
+        { error: "Email already used" },
         { status: 409 }
       );
     }
 
-    // 3. Створення користувача
+    // Створюємо користувача
     const user = await prisma.user.create({
       data: {
-        email,
-        password: await hashPassword(password),
-        role: role ?? "CLIENT",
+        email: parsed.email,
+        password: await hashPassword(parsed.password),
+        phone: parsed.phone,
+        role: parsed.role,
       },
     });
 
-    // 4. Відповідь (НЕ повертаємо пароль)
-    return NextResponse.json(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      { status: 201 }
-    );
-  } catch (err) {
-    console.error("REGISTER ERROR:", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      ok: true,
+      user: { id: user.id, email: user.email, role: user.role },
+    });
+  } catch (err: any) {
+    if (err.name === "ZodError") {
+      return NextResponse.json({ error: err.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
