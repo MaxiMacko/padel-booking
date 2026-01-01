@@ -1,43 +1,119 @@
 "use client";
 
-import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema, RegisterInput } from "@/lib/validators/register";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+  });
 
-  const register = async () => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
+  async function onSubmit(data: RegisterInput) {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
 
-    if (error) alert(error.message);
-    else alert("Registered successfully");
-  };
+    const result = await res.json();
+
+    if (!res.ok) {
+      alert(result.error || "Registration failed");
+      return;
+    }
+
+    alert("Registration successful");
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-80 space-y-4">
-        <input
-          className="w-full border p-2"
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="w-full border p-2"
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+    <div className="max-w-md mx-auto mt-20 bg-white p-6 rounded-xl">
+      <h1 className="text-2xl font-bold mb-6 text-black">Register</h1>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Email */}
+        <div>
+          <div className="text-black">Email:</div>
+          <input
+            {...register("email")}
+            placeholder="Email"
+            className="w-full border p-2 rounded"
+          />
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email.message}</p>
+          )}
+        </div>
+
+        {/* Password */}
+        <div>
+          <div className="text-black">Password:</div>
+          <input
+            type="password"
+            {...register("password")}
+            placeholder="Password"
+            className="w-full border p-2 rounded"
+          />
+          {errors.password && (
+            <p className="text-red-500 text-sm">{errors.password.message}</p>
+          )}
+        </div>
+
+        {/* Confirm Password */}
+        <div>
+          <div className="text-black">Confirm password:</div>
+          <input
+            type="password"
+            {...register("confirmPassword")}
+            placeholder="Confirm password"
+            className="w-full border p-2 rounded"
+          />
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm">
+              {errors.confirmPassword.message}
+            </p>
+          )}
+        </div>
+
+        {/* Role */}
+        <div>
+          <div className="text-black">Role:</div>
+          <select
+            {...register("role")}
+            className="w-full border p-2 rounded"
+          >
+            <option value="">Select role</option>
+            <option value="CLIENT">Client</option>
+            <option value="TRAINER">Trainer</option>
+          </select>
+          {errors.role && (
+            <p className="text-red-500 text-sm">Role is required</p>
+          )}
+        </div>
+
+        {/* Phone */}
+        <div>
+          <div className="text-black">Phone (optional):</div>
+          <input
+            {...register("phone")}
+            placeholder="Phone (optional)"
+            className="w-full border p-2 rounded"
+          />
+          {errors.phone && (
+            <p className="text-red-500 text-sm">{errors.phone.message}</p>
+          )}
+        </div>
+
         <button
-          className="w-full bg-indigo-600 text-white p-2"
-          onClick={register}
+          disabled={isSubmitting}
+          className="w-full bg-black text-white p-2 rounded disabled:opacity-50"
         >
-          Register
+          {isSubmitting ? "Creating account..." : "Register"}
         </button>
-      </div>
+      </form>
     </div>
   );
 }

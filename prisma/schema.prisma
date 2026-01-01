@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String   @id @default(uuid())
+  email    String   @unique
+  password String? // nullable, якщо OAuth або magic link
+  role     UserRole
+  name     String?
+  phone    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trainerSchedules TrainerSchedule[] @relation("TrainerSchedules")
+  bookings         Booking[]         @relation("ClientBookings")
+}
+
+enum UserRole {
+  CLIENT
+  TRAINER
+  ADMIN
+}
+
+model TrainerSchedule {
+  id        String @id @default(uuid())
+  trainerId String
+  trainer   User   @relation("TrainerSchedules", fields: [trainerId], references: [id])
+
+  startTime   DateTime
+  endTime     DateTime
+  isAvailable Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+
+  bookings Booking[]
+}
+
+model Booking {
+  id                String          @id @default(uuid())
+  trainerScheduleId String
+  trainerSchedule   TrainerSchedule @relation(fields: [trainerScheduleId], references: [id])
+
+  clientId String
+  client   User   @relation("ClientBookings", fields: [clientId], references: [id])
+
+  status    BookingStatus
+  createdAt DateTime      @default(now())
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  RESCHEDULED
+}
