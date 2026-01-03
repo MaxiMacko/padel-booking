@@ -1,21 +1,20 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { LogoutButton } from "../commonComponents/logoutButton";
-import { requireAuth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getCurrentUser();
 
-  const user = await requireAuth(); // якщо не залогінений → редірект на /login
-
+  console.log('USER', user);
 
   if (!user) {
     redirect("/login");
   }
-
 
   const onLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });

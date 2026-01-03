@@ -1,17 +1,16 @@
 import { redirect } from "next/navigation";
 import TrainerSidebar from "@/app/commonComponents/trainer/TrainerSidebar";
-import { requireAuth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function TrainerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireAuth(); // якщо не залогінений → редірект на /login
+  const user = await getCurrentUser();
 
-  if (user.role !== "TRAINER") {
-    redirect("/dashboard/trainer/calendar");
-  }
+  if (!user) redirect("/login");
+  if (user.role !== "TRAINER") redirect("/dashboard/client"); // або 403
 
 
   return (

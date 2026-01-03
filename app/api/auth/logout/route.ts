@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
 export async function POST() {
   const cookieStore = await cookies();
+  const refreshToken = cookieStore.get("refresh_token")?.value;
 
-  cookieStore.set({
-    name: "token",
-    value: "",
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 0, // 🔥 ключове
-  });
+  if (refreshToken) {
+    await prisma.session.updateMany({
+      where: { id: refreshToken },
+      data: { revokedAt: new Date() },
+    });
+  }
 
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+
+  res.cookies.delete("access_token");
+  res.cookies.delete("refresh_token");
+
+  return res;
 }

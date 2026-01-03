@@ -63,10 +63,13 @@ enum BookingStatus {
 }
 
 model Session {
-  id        String   @id
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  expiresAt DateTime
+  id     String @id // refresh token
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  createdAt DateTime @default(now())
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
 }

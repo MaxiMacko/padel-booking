@@ -1,45 +1,59 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
+const PROTECTED_PATHS = ["/dashboard"];
 
-export function proxy(req: NextRequest) {
-  const url = req.nextUrl.clone();
-  const token = req.cookies.get("token")?.value;
+export async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  if (!token) {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  const isProtected = PROTECTED_PATHS.some((path) =>
+    pathname.startsWith(path)
+  );
+
+  if (!isProtected) {
+    return NextResponse.next();
   }
 
-  let payload: { id: string; role: "CLIENT" | "TRAINER" | "ADMIN" };
+  const accessToken = req.cookies.get("access_token")?.value;
 
-  try {
-    payload = jwt.verify(token, JWT_SECRET) as typeof payload;
-  } catch (err) {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  // 1️⃣ Якщо access token є — пробуємо його валідувати
+  if (accessToken) {
+    try {
+      jwt.verify(accessToken, process.env.JWT_SECRET!);
+      return NextResponse.next();
+    } catch {
+      // token expired → пробуємо refresh
+    }
   }
 
-  // Авторизація по ролі
-  if (url.pathname.startsWith("/dashboard/client") && payload.role !== "CLIENT") {
-    url.pathname = "/dashboard/trainer/calendar";
-    return NextResponse.redirect(url);
+  // 2️⃣ Refresh flow
+  const refreshToken = req.cookies.get("refresh_token")?.value;
+
+  if (!refreshToken) {
+    return redirectToLogin(req);
   }
 
-  if (url.pathname.startsWith("/dashboard/trainer") && payload.role !== "TRAINER") {
-    url.pathname = "/dashboard/client/calendar";
-    return NextResponse.redirect(url);
+  const refreshRes = await fetch(
+    new URL("/api/auth/refresh", req.url),
+    {
+      method: "POST",
+      headers: {
+        cookie: req.headers.get("cookie") ?? "",
+      },
+    }
+  );
+
+  if (!refreshRes.ok) {
+    return redirectToLogin(req);
   }
 
+  // 🔁 refresh OK → пропускаємо
   return NextResponse.next();
 }
 
-export const config = {
-  matcher: [
-    "/dashboard/client/:path*",
-    "/dashboard/trainer/:path*",
-  ],
-};
+function redirectToLogin(req: NextRequest) {
+  const loginUrl = req.nextUrl.clone();
+  loginUrl.pathname = "/login";
+  loginUrl.searchParams.set("redirect", req.nextUrl.pathname);
+  return NextResponse.redirect(loginUrl);
+}
