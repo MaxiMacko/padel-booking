@@ -1,47 +1,85 @@
 "use client";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, LoginInput } from "@/lib/validators/login";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginInput) => {
+    setError("");
 
     const res = await fetch("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
 
-    if (res.ok) {
-      window.location.href = "/dashboard";
+    const json = await res.json();
+
+    if (!res.ok) {
+      setError(json.error ?? "Login failed");
+      return;
     }
-  }
+
+    // редірект по ролі
+    if (json.role === "CLIENT") {
+      router.push("/dashboard/client");
+    } else {
+      router.push("/dashboard/trainer");
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-80 space-y-4">
+    <div className="max-w-md mx-auto mt-20">
+      <h1 className="text-2xl font-bold mb-6">Login</h1>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
           <input
-            className="w-full border p-2"
+            {...register("email")}
             placeholder="Email"
-            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border p-2 rounded"
           />
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div>
           <input
-            className="w-full border p-2"
+            {...register("password")}
             type="password"
             placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border p-2 rounded"
           />
-          <button
-            className="w-full bg-indigo-600 text-white p-2"
-          >
-            Login
-          </button>
+          {errors.password && (
+            <p className="text-red-500 text-sm">{errors.password.message}</p>
+          )}
         </div>
-      </div>
-    </form>
+
+        {error && <p className="text-red-600">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-black text-white p-2 rounded"
+        >
+          {isSubmitting ? "Logging in..." : "Login"}
+        </button>
+      </form>
+    </div>
   );
 }

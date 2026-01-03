@@ -1,29 +1,18 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import TrainerSidebar from "@/app/commonComponents/trainer/TrainerSidebar";
+import { requireAuth } from "@/lib/auth";
 
 export default async function TrainerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServerClient();
+  const user = await requireAuth(); // якщо не залогінений → редірект на /login
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "trainer") {
-    redirect("/dashboard/client/calendar");
+  if (user.role !== "TRAINER") {
+    redirect("/dashboard/trainer/calendar");
   }
+
 
   return (
     <div className="flex min-h-screen bg-gray-100">

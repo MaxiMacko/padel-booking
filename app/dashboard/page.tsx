@@ -1,24 +1,14 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+import { requireAuth } from "@/lib/auth";
 
 export default async function DashboardPage() {
-  const supabase = await createSupabaseServerClient();
+  const user = await requireAuth(); // якщо не залогінений → редірект на /login
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, name")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role === "trainer") {
+  if (user.role === "TRAINER") {
     redirect("/dashboard/trainer");
   }
-
-  redirect("/dashboard/client");
+  if (user.role === "CLIENT") {
+    redirect("/dashboard/client");
+  }
 }

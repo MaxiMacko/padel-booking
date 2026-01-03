@@ -16,7 +16,7 @@ export default function ClientCalendarPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadSlots();
+    // loadSlots();
   }, []);
 
   async function loadSlots() {

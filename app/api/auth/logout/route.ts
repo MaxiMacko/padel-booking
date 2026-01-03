@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
-import { createSupabaseRouteClient } from "@/lib/supabase/route";
+import { cookies } from "next/headers";
 
 export async function POST() {
-  const supabase = await createSupabaseRouteClient();
-  await supabase.auth.signOut();
+  const cookieStore = await cookies();
 
-  return NextResponse.json({ success: true });
+  cookieStore.set({
+    name: "token",
+    value: "",
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0, // 🔥 ключове
+  });
+
+  return NextResponse.json({ ok: true });
 }
