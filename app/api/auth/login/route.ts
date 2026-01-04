@@ -44,7 +44,12 @@ export async function POST(req: Request) {
     },
   });
 
-  const res = NextResponse.json({ ok: true });
+  const res = NextResponse.json({
+    ok: true, user: {
+      id: user.id,
+      role: user.role,
+    },
+  });
 
   // 🍪 cookies
   res.cookies.set("access_token", accessToken, {

@@ -34,8 +34,10 @@ export default function LoginPage() {
       return;
     }
 
+
+    console.log('JSON on login page', json);
     // редірект по ролі
-    if (json.role === "CLIENT") {
+    if (json.user.role === "CLIENT") {
       router.push("/dashboard/client");
     } else {
       router.push("/dashboard/trainer");

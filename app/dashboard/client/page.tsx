@@ -1,13 +1,8 @@
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function ClientDashboardPage() {
   const user = await getCurrentUser();
-
-
 
   return (
     <div>

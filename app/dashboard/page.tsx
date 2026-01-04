@@ -10,8 +10,9 @@ export default async function DashboardPage() {
 
   if (user.role === "TRAINER") {
     redirect("/dashboard/trainer");
-  }
-  if (user.role === "CLIENT") {
+  } else if (user.role === "CLIENT") {
     redirect("/dashboard/client");
+  } else {
+    console.log("Unsupported role");
   }
 }
