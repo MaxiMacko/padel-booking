@@ -1,10 +1,11 @@
 
 import { requireRole } from "@/lib/auth";
 import ClientSidebar from "@/app/commonComponents/client/ClientSidebar";
+import { USER_TYPE } from "@/lib/types/types";
 
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
-  await requireRole("CLIENT");
+  await requireRole(USER_TYPE.CLIENT);
 
   return (
     <div className="flex min-h-screen bg-gray-100">

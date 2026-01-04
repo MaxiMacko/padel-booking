@@ -5,12 +5,13 @@ import { createSupabaseRouteClient } from "@/lib/supabase/route";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { createTrainerScheduleSchema } from "@/lib/validators/trainerSchedule.schema";
+import { USER_TYPE } from "@/lib/types/types";
 
 export async function POST(req: Request) {
   try {
     const user = await requireAuth();
 
-    if (user.role !== "TRAINER") {
+    if (user.role !== USER_TYPE.TRAINER) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
 export async function GET() {
   const user = await requireAuth();
 
-  if (user.role !== "TRAINER") {
+  if (user.role !== USER_TYPE.TRAINER) {
     return NextResponse.json(
       { error: "Forbidden" },
       { status: 403 }

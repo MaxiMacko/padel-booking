@@ -4,6 +4,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, RegisterInput } from "@/lib/validators/register";
 import { useState } from "react";
+import { USER_TYPE } from "@/lib/types/types";
 
 export default function RegisterPage() {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -108,8 +109,8 @@ export default function RegisterPage() {
           <label>Role</label>
           <select {...register("role")} className="w-full border p-2 rounded">
             <option value="">Select role</option>
-            <option value="CLIENT">Client</option>
-            <option value="TRAINER">Trainer</option>
+            <option value={`${USER_TYPE.CLIENT}`}>Client</option>
+            <option value={`${USER_TYPE.TRAINER}`}>Trainer</option>
           </select>
           {errors.role && (
             <p className="text-red-600">{errors.role.message}</p>

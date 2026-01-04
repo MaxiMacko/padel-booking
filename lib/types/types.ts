@@ -16,4 +16,12 @@ export const BOOKING_STATUS = {
   RESCHEDULED: 'rescheduled'
 } as const;
 
-export type BookingStatus = typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS] 
+export type BookingStatus = typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS]
+
+export const USER_TYPE = {
+  ADMIN: 'ADMIN',
+  CLIENT: 'CLIENT',
+  TRAINER: 'TRAINER'
+} as const;
+
+export type UserType = typeof USER_TYPE[keyof typeof USER_TYPE];

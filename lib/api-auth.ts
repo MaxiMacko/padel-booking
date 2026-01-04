@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { UserType } from "./types/types";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -14,7 +15,7 @@ export async function requireApiAuth() {
   try {
     return jwt.verify(token, JWT_SECRET) as {
       userId: string;
-      role: "CLIENT" | "TRAINER" | "ADMIN";
+      role: UserType;
     };
   } catch {
     throw new Error("INVALID_TOKEN");

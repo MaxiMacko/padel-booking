@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { USER_TYPE } from "@/lib/types/types";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -8,9 +9,9 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  if (user.role === "TRAINER") {
+  if (user.role === USER_TYPE.TRAINER) {
     redirect("/dashboard/trainer");
-  } else if (user.role === "CLIENT") {
+  } else if (user.role === USER_TYPE.CLIENT) {
     redirect("/dashboard/client");
   } else {
     console.log("Unsupported role");

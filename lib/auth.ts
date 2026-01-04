@@ -1,11 +1,10 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import { prisma } from "@/lib/prisma";
-import { forbidden } from "next/navigation";
+import { UserType } from "./types/types";
 
 export type AuthUser = {
   userId: string;
-  role: "CLIENT" | "TRAINER" | "ADMIN";
+  role: UserType;
   name?: string;
 };
 

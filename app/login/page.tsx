@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginInput } from "@/lib/validators/login";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { USER_TYPE } from "@/lib/types/types";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,10 +35,8 @@ export default function LoginPage() {
       return;
     }
 
-
-    console.log('JSON on login page', json);
     // редірект по ролі
-    if (json.user.role === "CLIENT") {
+    if (json.user.role === USER_TYPE.CLIENT) {
       router.push("/dashboard/client");
     } else {
       router.push("/dashboard/trainer");
