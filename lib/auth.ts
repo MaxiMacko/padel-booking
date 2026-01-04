@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { forbidden } from "next/navigation";
 
 export type AuthUser = {
-  id: string;
+  userId: string;
   role: "CLIENT" | "TRAINER" | "ADMIN";
   name?: string;
 };
@@ -26,7 +26,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     };
 
     return {
-      id: payload.userId,
+      userId: payload.userId,
       role: payload.role,
     };
   } catch {

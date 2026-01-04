@@ -2,67 +2,91 @@ import { NextResponse } from "next/server";
 
 import { createSupabaseRouteClient } from "@/lib/supabase/route";
 
+import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth";
+import { createTrainerScheduleSchema } from "@/lib/validators/trainerSchedule.schema";
+
 export async function POST(req: Request) {
-  const supabase = await createSupabaseRouteClient();
+  try {
+    const user = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    if (user.role !== "TRAINER") {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const body = await req.json();
+
+    const parsed = createTrainerScheduleSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { startTime, endTime } = parsed.data;
+
+    // базова логіка
+    if (new Date(startTime) >= new Date(endTime)) {
+      return NextResponse.json(
+        { error: "Invalid time range" },
+        { status: 400 }
+      );
+    }
+
+    const schedule = await prisma.trainerSchedule.create({
+      data: {
+        trainerId: user.userId,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+      },
+    });
+
+    return NextResponse.json({ ok: true, schedule });
+
+  } catch (err: any) {
+    if (err.message === "UNAUTHORIZED") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    console.error(err);
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
-
-  const { start_time, end_time } = await req.json();
-
-  const { error } = await supabase.from("trainer_schedules").insert({
-    start_time,
-    end_time,
-  });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ success: true });
 }
 
-
 export async function GET() {
-  const supabase = await createSupabaseRouteClient();
+  const user = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role !== "TRAINER") {
+    return NextResponse.json(
+      { error: "Forbidden" },
+      { status: 403 }
+    );
   }
 
-  // перевіряємо роль
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const schedules = await prisma.trainerSchedule.findMany({
+    where: {
+      trainerId: user.userId,
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+    include: {
+      bookings: true,
+    },
+  });
 
-  if (profile?.role !== "trainer") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  // Якщо залогінений тренер — показуємо тільки його слоти
-
-  const { data, error } = await supabase
-    .from("trainer_schedules")
-    .select("*")
-    .eq('trainer_id', user.id)
-    .order("start_time");
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  return NextResponse.json(data);
+  return NextResponse.json(schedules);
 }
 
 export async function DELETE(

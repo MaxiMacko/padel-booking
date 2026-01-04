@@ -19,13 +19,13 @@ export default function TrainerCalendarPage() {
     setEvents(
       data.map((slot: any) => ({
         id: slot.id,
-        start: slot.start_time,
-        end: slot.end_time,
-        title: slot.is_available ? "Available" : "Booked",
-        color: slot.is_available ? "#16a34a" : "#dc2626",
+        start: slot.startTime,
+        end: slot.endTime,
+        title: slot.isAvailable ? "Available" : "Booked",
+        color: slot.isAvailable ? "#16a34a" : "#dc2626",
         // Custom props
         extendedProps: {
-          editable: slot.is_available,
+          editable: slot.isAvailable,
         },
       }))
     );
@@ -35,12 +35,12 @@ export default function TrainerCalendarPage() {
     await fetch("/api/trainer/schedules", {
       method: "POST",
       body: JSON.stringify({
-        start_time: info.startStr,
-        end_time: info.endStr,
+        startTime: info.startStr,
+        endTime: info.endStr,
       }),
     });
 
-    loadSlots();
+    // loadSlots();
   }
 
   async function handleEventClick(event: any) {

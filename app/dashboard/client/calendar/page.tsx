@@ -16,7 +16,7 @@ export default function ClientCalendarPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // loadSlots();
+    loadSlots();
   }, []);
 
   async function loadSlots() {
@@ -27,8 +27,8 @@ export default function ClientCalendarPage() {
       (data || [])
         .map((slot: any) => ({
           id: slot.id,
-          start: slot.start_time,
-          end: slot.end_time,
+          start: slot.startTime,
+          end: slot.endTime,
           title: "Available",
         }))
     );

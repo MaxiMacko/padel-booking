@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
   // 🔐 Access token
   const accessToken = jwt.sign(
-    { sub: user.id, role: user.role },
+    { userId: user.id, role: user.role },
     process.env.JWT_SECRET!,
     { expiresIn: ACCESS_TTL }
   );

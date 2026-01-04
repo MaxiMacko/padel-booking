@@ -1,26 +1,41 @@
-import { createSupabaseRouteClient } from "@/lib/supabase/route";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function GET() {
-  const supabase = await createSupabaseRouteClient();
+export async function GET(req: Request) {
+  const url = new URL(req.url);
 
-  const { data, error } = await supabase
-    .from("trainer_schedules")
-    .select(`
-      id,
-      start_time,
-      end_time,
-      trainer_id,
-      profiles (
-        name
-      )
-    `)
-    .eq("is_available", true)
-    .order("start_time");
+  const from = url.searchParams.get("from");
+  const to = url.searchParams.get("to");
+  const trainerId = url.searchParams.get("trainerId"); // optional
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  const where: any = {
+    isAvailable: true,
+    bookings: { none: {} },
+  };
+
+  if (trainerId) {
+    where.trainerId = trainerId;
   }
 
-  return NextResponse.json(data);
+  if (from || to) {
+    where.startTime = {};
+    if (from) where.startTime.gte = new Date(from);
+    if (to) where.startTime.lte = new Date(to);
+  }
+
+  const slots = await prisma.trainerSchedule.findMany({
+    where,
+    orderBy: {
+      startTime: "asc",
+    },
+    select: {
+      id: true,
+      trainerId: true,
+      startTime: true,
+      endTime: true,
+    },
+  });
+
+  return NextResponse.json(slots);
 }
+
