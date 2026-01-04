@@ -10,15 +10,8 @@ export default async function DashboardLayout({
 }) {
   const user = await getCurrentUser();
 
-  console.log('USER', user);
-
   if (!user) {
     redirect("/login");
-  }
-
-  const onLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/login";
   }
 
   return (

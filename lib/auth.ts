@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { forbidden } from "next/navigation";
 
 export type AuthUser = {
   id: string;
