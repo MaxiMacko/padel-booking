@@ -1,28 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type Booking = {
-  id: string;
-  status: string;
-  trainer_schedules: {
-    start_time: string;
-    end_time: string;
-  };
-  client: {
-    full_name: string | null;
-  };
-};
+import { TrainerBookingCard } from "./TrainerBookingCard";
+import { Booking } from "@/lib/types/types";
 
 export default function TrainerBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    load();
+    loadBookings();
   }, []);
 
-  async function load() {
+  async function loadBookings() {
     const res = await fetch("/api/trainer/bookings");
     const data = await res.json();
     setBookings(data || []);
@@ -40,31 +30,8 @@ export default function TrainerBookingsPage() {
       )}
 
       <div className="space-y-3">
-        {bookings.map((b) => (
-          <div
-            key={b.id}
-            className="border rounded-lg p-4 flex justify-between"
-          >
-            <div>
-              <p className="font-medium">
-                {new Date(
-                  b.trainer_schedules.start_time
-                ).toLocaleString()}
-              </p>
-              <p className="text-sm text-gray-500">
-                Client: {b.client?.full_name || "—"}
-              </p>
-            </div>
-
-            <span
-              className={`px-3 py-1 rounded text-sm ${b.status === "booked"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-200 text-gray-700"
-                }`}
-            >
-              {b.status}
-            </span>
-          </div>
+        {bookings.map((booking) => (
+          <TrainerBookingCard booking={booking} key={booking.id} />
         ))}
       </div>
     </div>
