@@ -1,51 +1,72 @@
 import { NextResponse } from "next/server";
-import { createSupabaseRouteClient } from "@/lib/supabase/route";
+import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth";
+import { BookingStatus } from "@/lib/generated/prisma/client";
 
 export async function POST(req: Request) {
-  const { schedule_id } = await req.json();
-  const supabase = await createSupabaseRouteClient();
+  const user = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role !== "CLIENT") {
+    return NextResponse.json(
+      { error: "Only clients can book slots" },
+      { status: 403 }
+    );
   }
 
-  const { error } = await supabase.rpc("book_schedule", {
-    p_schedule_id: schedule_id,
-  });
+  const { trainerScheduleId } = await req.json();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  if (!trainerScheduleId) {
+    return NextResponse.json(
+      { error: "trainerScheduleId is required" },
+      { status: 400 }
+    );
   }
 
-  return NextResponse.json({ success: true });
-}
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1️⃣ Перевіряємо слот
+      const slot = await tx.trainerSchedule.findUnique({
+        where: { id: trainerScheduleId },
+        include: {
+          bookings: true,
+        },
+      });
 
-export async function GET() {
-  const supabase = await createSupabaseRouteClient();
+      if (!slot || !slot.isAvailable) {
+        throw new Error("SLOT_NOT_AVAILABLE");
+      }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      if (slot.bookings.length > 0) {
+        throw new Error("ALREADY_BOOKED");
+      }
 
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(`
-    id,
-    status,
-    schedule:trainer_schedules!trainer_schedule_id (
-      start_time,
-      end_time
-    )
-  `)
-    .eq("client_id", user?.id);
+      // 2️⃣ Створюємо booking
+      const booking = await tx.booking.create({
+        data: {
+          trainerScheduleId,
+          clientId: user.userId,
+          status: BookingStatus.PENDING,
+        },
+      });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+      // 3️⃣ Блокуємо слот
+      await tx.trainerSchedule.update({
+        where: { id: trainerScheduleId },
+        data: { isAvailable: false },
+      });
+
+      return booking;
+    });
+
+    return NextResponse.json({ ok: true, booking: result });
+  } catch (err: any) {
+    const message =
+      err.message === "SLOT_NOT_AVAILABLE"
+        ? "Slot is not available"
+        : err.message === "ALREADY_BOOKED"
+          ? "Slot already booked"
+          : "Booking failed";
+
+    return NextResponse.json({ error: message }, { status: 400 });
   }
-
-  return NextResponse.json(data);
 }

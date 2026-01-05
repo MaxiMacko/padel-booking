@@ -45,7 +45,7 @@ export default function ClientCalendarPage() {
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ schedule_id: event.id }),
+        body: JSON.stringify({ trainerScheduleId: event.id }),
       });
 
       const data = await res.json();
