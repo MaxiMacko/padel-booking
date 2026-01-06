@@ -1,11 +1,12 @@
 "use client";
 
+import { BookingStatus } from "@/lib/generated/prisma/enums";
 import { Booking } from "@/lib/types/types";
 import { useState } from "react";
 
 export function TrainerBookingCard({ booking }: { booking: Booking }) {
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(booking.status);
+  const [status, setStatus] = useState<BookingStatus>(booking.status);
 
   async function confirmBooking() {
     setLoading(true);
@@ -17,6 +18,23 @@ export function TrainerBookingCard({ booking }: { booking: Booking }) {
 
     if (res.ok) {
       setStatus("CONFIRMED");
+    } else {
+      alert("Failed to confirm booking");
+    }
+
+    setLoading(false);
+  }
+
+  async function rejectBooking() {
+    setLoading(true);
+
+    const res = await fetch(
+      `/api/trainer/bookings/${booking.id}/reject`,
+      { method: "POST" }
+    );
+
+    if (res.ok) {
+      setStatus("CANCELLED");
     } else {
       alert("Failed to confirm booking");
     }
@@ -54,6 +72,7 @@ export function TrainerBookingCard({ booking }: { booking: Booking }) {
         <div className="flex gap-2 pt-2">
           <button
             className="px-4 py-2 rounded-lg border text-gray-600"
+            onClick={rejectBooking}
             disabled={loading}
           >
             Reject

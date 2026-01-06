@@ -10,7 +10,13 @@ export async function GET(req: Request) {
 
   const where: any = {
     isAvailable: true,
-    bookings: { none: {} },
+    bookings: {
+      none: {
+        status: {
+          in: ["PENDING", "CONFIRMED"],
+        },
+      },
+    },
   };
 
   if (trainerId) {
@@ -22,6 +28,8 @@ export async function GET(req: Request) {
     if (from) where.startTime.gte = new Date(from);
     if (to) where.startTime.lte = new Date(to);
   }
+
+  console.log("where", where)
 
   const slots = await prisma.trainerSchedule.findMany({
     where,

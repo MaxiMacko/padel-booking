@@ -40,7 +40,7 @@ export default function TrainerCalendarPage() {
       }),
     });
 
-    // loadSlots();
+    loadSlots();
   }
 
   async function handleEventClick(event: any) {
