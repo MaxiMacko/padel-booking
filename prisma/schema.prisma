@@ -36,7 +36,8 @@ model TrainerSchedule {
 
   startTime   DateTime
   endTime     DateTime
-  isAvailable Boolean  @default(true)
+  isAvailable Boolean   @default(true)
+  deletedAt   DateTime?
 
   createdAt DateTime @default(now())
 

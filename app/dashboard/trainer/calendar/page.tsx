@@ -4,9 +4,14 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useEffect, useState } from "react";
+import { DeleteScheduleModal } from "@/app/commonComponents/trainer/DeleteScheduleModal";
+import { calculateSlotTitle } from "./helpers";
 
 export default function TrainerCalendarPage() {
   const [events, setEvents] = useState<any[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     loadSlots();
@@ -21,11 +26,12 @@ export default function TrainerCalendarPage() {
         id: slot.id,
         start: slot.startTime,
         end: slot.endTime,
-        title: slot.isAvailable ? "Available" : "Booked",
+        title: calculateSlotTitle(slot),
         color: slot.isAvailable ? "#16a34a" : "#dc2626",
         // Custom props
         extendedProps: {
           editable: slot.isAvailable,
+          slot,
         },
       }))
     );
@@ -43,26 +49,24 @@ export default function TrainerCalendarPage() {
     loadSlots();
   }
 
-  async function handleEventClick(event: any) {
-    if (!event.extendedProps.editable) {
-      alert("Цей слот уже заброньований");
-      return;
-    }
-
-    if (!confirm("Видалити цей слот?")) return;
-
-    const res = await fetch(
-      `/api/trainer-schedules/${event.id}`,
-      { method: "DELETE" }
-    );
-
+  async function loadSchedules() {
+    const res = await fetch("/api/trainer/schedules");
     const data = await res.json();
 
-    if (res.ok) {
-      event.remove(); // миттєво з календаря
-    } else {
-      alert(data.error || "Не вдалося видалити слот");
-    }
+    setEvents(
+      data.map((s: any) => ({
+        id: s.id,
+        start: s.startTime,
+        end: s.endTime,
+        title: s.isAvailable ? "Available" : "Booked",
+      }))
+    );
+  }
+
+  async function handleEventClick(event: any) {
+    console.log('handle event click', event.extendedProps.slot);
+    setSelectedSlot(event.extendedProps.slot);
+    // setSelectedScheduleId(event.id); 
   }
 
   return (
@@ -78,6 +82,17 @@ export default function TrainerCalendarPage() {
         allDaySlot={false}
         eventClick={(info) => handleEventClick(info.event)}
       />
+
+      {
+        selectedSlot && (
+          <DeleteScheduleModal
+            slot={selectedSlot}
+            onClose={() => setSelectedSlot(null)}
+            onDeleted={loadSchedules}
+          />
+        )
+      }
+
     </div>
   );
 }

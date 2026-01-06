@@ -10,6 +10,7 @@ export async function GET(req: Request) {
 
   const where: any = {
     isAvailable: true,
+    deletedAt: null,
     bookings: {
       none: {
         status: {
