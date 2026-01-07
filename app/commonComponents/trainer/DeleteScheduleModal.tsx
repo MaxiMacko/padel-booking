@@ -15,14 +15,27 @@ export function DeleteScheduleModal({
 }: Props) {
   const [loading, setLoading] = useState(false);
 
+  async function reactivate() {
+    setLoading(true);
+
+    await fetch(
+      `/api/trainer/schedules/${slot.id}/reactivate`,
+      { method: "POST" }
+    );
+
+    setLoading(false);
+    onDeleted(); // reload
+    onClose();
+  }
+
   async function deactivate() {
     if (!confirm("Deactivate this slot?")) return;
 
     setLoading(true);
 
-    await fetch(`/api/trainer/schedules/${slot.id}`, {
-      method: "DELETE",
-    });
+    await fetch(`/api/trainer/schedules/${slot.id}/deactivate`,
+      { method: "POST" }
+    );
 
     setLoading(false);
     onDeleted();
@@ -48,13 +61,23 @@ export function DeleteScheduleModal({
             Close
           </button>
 
-          <button
-            onClick={deactivate}
-            disabled={loading}
-            className="px-4 py-2 rounded bg-red-600 text-white"
-          >
-            Deactivate
-          </button>
+          {slot.deletedAt ? (
+            <button
+              onClick={reactivate}
+              disabled={loading}
+              className="px-4 py-2 rounded bg-green-600 text-white"
+            >
+              Reactivate
+            </button>
+          ) : (
+            <button
+              onClick={deactivate}
+              disabled={loading}
+              className="px-4 py-2 rounded bg-red-600 text-white"
+            >
+              Deactivate
+            </button>
+          )}
         </div>
       </div>
     </div>

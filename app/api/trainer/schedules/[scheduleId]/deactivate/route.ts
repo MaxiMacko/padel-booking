@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-export async function DELETE(
+export async function POST(
   _: Request,
   { params }: { params: Promise<{ scheduleId: string }> }
 ) {

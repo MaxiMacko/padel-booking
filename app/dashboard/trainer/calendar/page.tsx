@@ -49,24 +49,9 @@ export default function TrainerCalendarPage() {
     loadSlots();
   }
 
-  async function loadSchedules() {
-    const res = await fetch("/api/trainer/schedules");
-    const data = await res.json();
-
-    setEvents(
-      data.map((s: any) => ({
-        id: s.id,
-        start: s.startTime,
-        end: s.endTime,
-        title: s.isAvailable ? "Available" : "Booked",
-      }))
-    );
-  }
-
   async function handleEventClick(event: any) {
     console.log('handle event click', event.extendedProps.slot);
     setSelectedSlot(event.extendedProps.slot);
-    // setSelectedScheduleId(event.id); 
   }
 
   return (
@@ -88,7 +73,7 @@ export default function TrainerCalendarPage() {
           <DeleteScheduleModal
             slot={selectedSlot}
             onClose={() => setSelectedSlot(null)}
-            onDeleted={loadSchedules}
+            onDeleted={loadSlots}
           />
         )
       }
