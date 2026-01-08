@@ -4,7 +4,15 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, RegisterInput } from "@/lib/validators/register";
 import { useState } from "react";
-import { USER_TYPE } from "@/lib/types/types";
+import { Input } from "../commonComponents/ui/Input/Input";
+import { Select } from "../commonComponents/ui/Select/Select";
+import { Button } from "../commonComponents/ui/Button/Button";
+
+const roles = [
+  { value: "CLIENT", label: "Client" },
+  { value: "TRAINER", label: "Trainer" },
+];
+
 
 export default function RegisterPage() {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -52,78 +60,37 @@ export default function RegisterPage() {
       {serverError && <p className="text-red-600 mb-4">{serverError}</p>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email */}
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            {...register("email")}
-            className="w-full border p-2 rounded"
-          />
-          {errors.email && (
-            <p className="text-red-600">{errors.email.message}</p>
-          )}
-        </div>
+        <Input
+          label="Email"
+          type="email"
+          {...register("email")}
+          error={errors.email?.message}
+        />
 
-        {/* Password */}
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            {...register("password")}
-            className="w-full border p-2 rounded"
-          />
-          {errors.password && (
-            <p className="text-red-600">{errors.password.message}</p>
-          )}
-        </div>
+        <Input
+          label="Password"
+          type="password"
+          {...register("password")}
+          error={errors.password?.message}
+        />
 
-        {/* Confirm Password */}
-        <div>
-          <label>Confirm Password</label>
-          <input
-            type="password"
-            {...register("confirmPassword")}
-            className="w-full border p-2 rounded"
-          />
-          {errors.confirmPassword && (
-            <p className="text-red-600">{errors.confirmPassword.message}</p>
-          )}
-        </div>
+        <Input
+          label="Confirm password"
+          type="password"
+          {...register("confirmPassword")}
+          error={errors.confirmPassword?.message}
+        />
 
-        {/* Phone (optional) */}
-        <div>
-          <label>Phone (optional)</label>
-          <input
-            type="text"
-            {...register("phone")}
-            className="w-full border p-2 rounded"
-          />
-          {errors.phone && (
-            <p className="text-red-600">{errors.phone.message}</p>
-          )}
-        </div>
+        <Select
+          label="Role"
+          {...register("role")}
+          options={roles}
+          error={errors.role?.message}
+        />
 
-        {/* Role */}
-        <div>
-          <label>Role</label>
-          <select {...register("role")} className="w-full border p-2 rounded">
-            <option value="">Select role</option>
-            <option value={`${USER_TYPE.CLIENT}`}>Client</option>
-            <option value={`${USER_TYPE.TRAINER}`}>Trainer</option>
-          </select>
-          {errors.role && (
-            <p className="text-red-600">{errors.role.message}</p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-indigo-600 text-white p-2 rounded"
-        >
-          {isSubmitting ? "Registering..." : "Register"}
-        </button>
+        <Button type="submit" className="w-full">
+          Register
+        </Button>
       </form>
     </div>
   );
