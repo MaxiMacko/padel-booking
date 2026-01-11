@@ -38,9 +38,11 @@ export default function RegisterPage() {
 
       if (res.ok) {
         alert("✅ User created successfully!");
+        setSuccess(true)
         // redirect або очищення форми
       } else {
         alert("❌ Error: " + JSON.stringify(result.error));
+        setServerError(result.error);
       }
     } catch (err) {
       console.error(err);
@@ -88,7 +90,7 @@ export default function RegisterPage() {
           error={errors.role?.message}
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" variant="primary">
           Register
         </Button>
       </form>

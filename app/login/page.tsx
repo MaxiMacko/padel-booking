@@ -6,6 +6,8 @@ import { loginSchema, LoginInput } from "@/lib/validators/login";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { USER_TYPE } from "@/lib/types/types";
+import { Input } from "../commonComponents/ui/Input/Input";
+import { Button } from "../commonComponents/ui/Button/Button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,18 +51,24 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <input
+          {/* <input
             {...register("email")}
             placeholder="Email"
             className="w-full border p-2 rounded"
           />
           {errors.email && (
             <p className="text-red-500 text-sm">{errors.email.message}</p>
-          )}
+          )} */}
+          <Input
+            label="Email"
+            type="email"
+            error={errors.email?.message}
+            {...register("email")}
+          />
         </div>
 
         <div>
-          <input
+          {/* <input
             {...register("password")}
             type="password"
             placeholder="Password"
@@ -68,18 +76,25 @@ export default function LoginPage() {
           />
           {errors.password && (
             <p className="text-red-500 text-sm">{errors.password.message}</p>
-          )}
+          )} */}
+          <Input
+            label="Password"
+            type="password"
+            error={errors.password?.message}
+            {...register("password")}
+          />
         </div>
 
         {error && <p className="text-red-600">{error}</p>}
 
-        <button
+        {/* <button
           type="submit"
           disabled={isSubmitting}
           className="w-full bg-black text-white p-2 rounded"
         >
           {isSubmitting ? "Logging in..." : "Login"}
-        </button>
+        </button> */}
+        <Button type="submit" variant="primary" className="w-full">Login</Button>
       </form>
     </div>
   );

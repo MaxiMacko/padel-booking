@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ConfirmDialog } from "../ui/ConfirmDialog/ConfirmDialog";
+import { sl } from "zod/v4/locales";
 
 interface Props {
   onClose: () => void;
@@ -29,8 +31,6 @@ export function DeleteScheduleModal({
   }
 
   async function deactivate() {
-    if (!confirm("Deactivate this slot?")) return;
-
     setLoading(true);
 
     await fetch(`/api/trainer/schedules/${slot.id}/deactivate`,
@@ -42,44 +42,16 @@ export function DeleteScheduleModal({
     onClose();
   }
 
+  const confirmHandler = slot.deletedAt ? reactivate : deactivate;
+
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-96 space-y-4">
-        <h2 className="text-xl font-bold">Schedule</h2>
-
-        <p>
-          🕒 {new Date(slot.startTime).toLocaleString()} –{" "}
-          {new Date(slot.endTime).toLocaleTimeString()}
-        </p>
-
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded bg-gray-100"
-          >
-            Close
-          </button>
-
-          {slot.deletedAt ? (
-            <button
-              onClick={reactivate}
-              disabled={loading}
-              className="px-4 py-2 rounded bg-green-600 text-white"
-            >
-              Reactivate
-            </button>
-          ) : (
-            <button
-              onClick={deactivate}
-              disabled={loading}
-              className="px-4 py-2 rounded bg-red-600 text-white"
-            >
-              Deactivate
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      title="Deactivate slot"
+      open
+      description={`${new Date(slot.startTime).toLocaleString()} - ${new Date(slot.endTime.toLocaleString())}`}
+      onConfirm={confirmHandler}
+      onCancel={onClose}
+    />
   );
 }
