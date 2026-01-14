@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { ConfirmDialog } from "../ui/ConfirmDialog/ConfirmDialog";
-import { sl } from "zod/v4/locales";
+import { ca, sl } from "zod/v4/locales";
+import { toast } from "sonner";
 
 interface Props {
   onClose: () => void;
@@ -18,28 +19,40 @@ export function DeleteScheduleModal({
   const [loading, setLoading] = useState(false);
 
   async function reactivate() {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    await fetch(
-      `/api/trainer/schedules/${slot.id}/reactivate`,
-      { method: "POST" }
-    );
+      await fetch(
+        `/api/trainer/schedules/${slot.id}/reactivate`,
+        { method: "POST" }
+      );
 
-    setLoading(false);
-    onDeleted(); // reload
-    onClose();
+      setLoading(false);
+      onDeleted(); // reload
+      onClose();
+      toast.success('Slot is reactivated');
+    } catch (e) {
+      toast.success('Something went wrong');
+    }
+
   }
 
   async function deactivate() {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    await fetch(`/api/trainer/schedules/${slot.id}/deactivate`,
-      { method: "POST" }
-    );
+      await fetch(`/api/trainer/schedules/${slot.id}/deactivate`,
+        { method: "POST" }
+      );
 
-    setLoading(false);
-    onDeleted();
-    onClose();
+      setLoading(false);
+      onDeleted();
+      onClose();
+      toast.success('Slot is deactivated');
+    } catch (e) {
+      toast.success('Something went wrong');
+    }
+
   }
 
   const confirmHandler = slot.deletedAt ? reactivate : deactivate;

@@ -4,6 +4,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { DeleteScheduleModal } from "@/app/commonComponents/trainer/DeleteScheduleModal";
 import { calculateSlotTitle } from "./helpers";
 
@@ -38,19 +39,23 @@ export default function TrainerCalendarPage() {
   }
 
   async function handleSelect(info: any) {
-    await fetch("/api/trainer/schedules", {
-      method: "POST",
-      body: JSON.stringify({
-        startTime: info.startStr,
-        endTime: info.endStr,
-      }),
-    });
+    try {
+      await fetch("/api/trainer/schedules", {
+        method: "POST",
+        body: JSON.stringify({
+          startTime: info.startStr,
+          endTime: info.endStr,
+        }),
+      });
+      loadSlots();
+      toast.success('Slot is created');
+    } catch (e) {
+      toast.success("Something went wrong")
+    }
 
-    loadSlots();
   }
 
   async function handleEventClick(event: any) {
-    console.log('handle event click', event.extendedProps.slot);
     setSelectedSlot(event.extendedProps.slot);
   }
 
