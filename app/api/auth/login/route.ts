@@ -1,11 +1,4 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-import { randomUUID } from "crypto";
-import { prisma } from "@/lib/prisma";
-import { verifyPassword } from "@/lib/passwords";
-
-const ACCESS_TTL = "15m";
-const REFRESH_TTL_DAYS = 7;
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
@@ -14,45 +7,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !user.password) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-  }
-
-  const valid = await verifyPassword(password, user.password);
-  if (!valid) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-  }
-
-  // 🔐 Access token
-  const accessToken = jwt.sign(
-    { userId: user.id, role: user.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: ACCESS_TTL }
+  const res = await fetch(
+    `${process.env.BACKEND_URL}/auth/login`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    },
   );
 
-  // 🔁 Refresh token
-  const refreshToken = randomUUID();
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + REFRESH_TTL_DAYS);
+  if (!res.ok) {
+    return NextResponse.json(
+      await res.json(),
+      { status: res.status },
+    );
+  }
 
-  await prisma.session.create({
-    data: {
-      id: refreshToken,
-      userId: user.id,
-      expiresAt,
-    },
-  });
+  const data = await res.json();
 
-  const res = NextResponse.json({
-    ok: true, user: {
-      id: user.id,
-      role: user.role,
-    },
-  });
+  const { accessToken, refreshToken } = data;
 
-  // 🍪 cookies
-  res.cookies.set("access_token", accessToken, {
+  const response = NextResponse.json(data);
+
+  response.cookies.set("access_token", accessToken, {
     httpOnly: true,
     path: "/",
     maxAge: 60 * 15,
@@ -60,13 +37,13 @@ export async function POST(req: Request) {
     secure: process.env.NODE_ENV === "production",
   });
 
-  res.cookies.set("refresh_token", refreshToken, {
+  response.cookies.set("refresh_token", refreshToken, {
     httpOnly: true,
     path: "/",
-    maxAge: 60 * 60 * 24 * REFRESH_TTL_DAYS,
+    maxAge: 60 * 60 * 24 * 7,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   });
 
-  return res;
+  return response;
 }
