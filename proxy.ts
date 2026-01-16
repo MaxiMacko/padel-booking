@@ -20,7 +20,6 @@ export async function proxy(req: NextRequest) {
 
   // 1️⃣ Якщо access token є — пробуємо його валідувати
   if (accessToken) {
-    console.log('access token', jwt.verify(accessToken, process.env.JWT_SECRET!));
     try {
       jwt.verify(accessToken, process.env.JWT_SECRET!);
       return NextResponse.next();

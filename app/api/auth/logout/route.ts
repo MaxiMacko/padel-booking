@@ -1,22 +1,23 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 export async function POST() {
   const cookieStore = await cookies();
+
   const refreshToken = cookieStore.get("refresh_token")?.value;
 
   if (refreshToken) {
-    await prisma.session.updateMany({
-      where: { id: refreshToken },
-      data: { revokedAt: new Date() },
+    const resp = await fetch(`${process.env.BACKEND_URL}/auth/logout`, {
+      method: "POST",
+      headers: {
+        Cookie: `refresh_token=${refreshToken}`,
+      },
+      credentials: "include",
     });
+    console.log('LOGOUT response', resp);
   }
+  cookieStore.delete("access_token");
+  cookieStore.delete("refresh_token");
 
-  const res = NextResponse.json({ ok: true });
-
-  res.cookies.delete("access_token");
-  res.cookies.delete("refresh_token");
-
-  return res;
+  return NextResponse.json({ ok: true });
 }
