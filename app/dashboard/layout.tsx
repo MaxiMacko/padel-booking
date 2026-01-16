@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { LogoutButton } from "../commonComponents/logoutButton";
 import { getCurrentUser } from "@/lib/auth";
 

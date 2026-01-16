@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Input } from "../commonComponents/ui/Input/Input";
 import { Select } from "../commonComponents/ui/Select/Select";
 import { Button } from "../commonComponents/ui/Button/Button";
+import { redirect } from "next/navigation";
 
 const roles = [
   { value: "CLIENT", label: "Client" },
@@ -52,7 +53,7 @@ export default function RegisterPage() {
 
 
   if (success) {
-    return <p>✅ Registration successful! You can now login.</p>;
+    redirect('/dashboard');
   }
 
   return (
