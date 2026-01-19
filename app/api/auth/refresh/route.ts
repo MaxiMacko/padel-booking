@@ -1,44 +1,34 @@
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+// app/api/auth/refresh/route.ts
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 export async function POST() {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get("refresh_token")?.value;
+  const refreshToken = cookieStore.get('refresh_token')?.value;
 
   if (!refreshToken) {
-    return NextResponse.json({ error: "No refresh token" }, { status: 401 });
+    return NextResponse.json({ error: 'No refresh token' }, { status: 401 });
   }
 
-  const session = await prisma.session.findUnique({
-    where: { id: refreshToken },
-    include: { user: true },
+  const res = await fetch(`${process.env.BACKEND_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
   });
 
-  if (
-    !session ||
-    session.revokedAt ||
-    session.expiresAt < new Date()
-  ) {
-    return NextResponse.json({ error: "Invalid refresh token" }, { status: 401 });
+  if (!res.ok) {
+    cookieStore.delete('refresh_token');
+    return NextResponse.json({ error: 'Refresh failed' }, { status: 401 });
   }
 
-  const accessToken = jwt.sign(
-    { sub: session.user.id, role: session.user.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: "15m" }
-  );
+  const { accessToken, refreshToken: newRefreshToken } = await res.json();
 
-  const res = NextResponse.json({ ok: true });
-
-  res.cookies.set("access_token", accessToken, {
+  cookieStore.set('refresh_token', newRefreshToken, {
     httpOnly: true,
-    path: "/",
-    maxAge: 60 * 15,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
   });
 
-  return res;
+  return NextResponse.json({ accessToken });
 }
