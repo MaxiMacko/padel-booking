@@ -4,43 +4,71 @@ import { requireAuth } from "@/lib/auth";
 import { BookingStatus } from "@/lib/generated/prisma/client";
 
 export async function POST(req: Request) {
-  const user = await requireAuth();
-
-  if (user.role !== "CLIENT") {
-    return NextResponse.json(
-      { error: "Only clients can book slots" },
-      { status: 403 }
-    );
-  }
-
-  const { trainerScheduleId } = await req.json();
-
-  if (!trainerScheduleId) {
-    return NextResponse.json(
-      { error: "trainerScheduleId is required" },
-      { status: 400 }
-    );
-  }
-
   try {
+    const user = await requireAuth();
+
+    if (user.role !== "CLIENT") {
+      return NextResponse.json(
+        { error: "Only clients can book slots" },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json();
+    const { trainerScheduleId } = body;
+
+    if (!trainerScheduleId || typeof trainerScheduleId !== "string") {
+      return NextResponse.json(
+        { error: "Valid trainerScheduleId is required" },
+        { status: 400 }
+      );
+    }
+
     const result = await prisma.$transaction(async (tx) => {
-      // 1️⃣ Перевіряємо слот
+      // 1️⃣ Verify slot availability and check for existing bookings
       const slot = await tx.trainerSchedule.findUnique({
         where: { id: trainerScheduleId },
-        include: {
-          bookings: true,
+        select: {
+          id: true,
+          isAvailable: true,
+          _count: {
+            select: {
+              bookings: {
+                where: {
+                  status: {
+                    in: [BookingStatus.PENDING, BookingStatus.CONFIRMED],
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
-      if (!slot || !slot.isAvailable) {
+      if (!slot) {
+        throw new Error("SLOT_NOT_FOUND");
+      }
+
+      if (!slot.isAvailable || slot._count.bookings > 0) {
         throw new Error("SLOT_NOT_AVAILABLE");
       }
 
-      if (slot.bookings.length > 0) {
+      // 2️⃣ Check for duplicate booking by same client
+      const existingBooking = await tx.booking.findFirst({
+        where: {
+          trainerScheduleId,
+          clientId: user.userId,
+          status: {
+            in: [BookingStatus.PENDING, BookingStatus.CONFIRMED],
+          },
+        },
+      });
+
+      if (existingBooking) {
         throw new Error("ALREADY_BOOKED");
       }
 
-      // 2️⃣ Створюємо booking
+      // 3️⃣ Create booking
       const booking = await tx.booking.create({
         data: {
           trainerScheduleId,
@@ -49,24 +77,32 @@ export async function POST(req: Request) {
         },
       });
 
-      // 3️⃣ Блокуємо слот
+      // 4️⃣ Mark slot as unavailable
       await tx.trainerSchedule.update({
         where: { id: trainerScheduleId },
         data: { isAvailable: false },
       });
 
       return booking;
+    }, {
+      maxWait: 5000,
+      timeout: 10000,
     });
 
     return NextResponse.json({ ok: true, booking: result });
   } catch (err: any) {
     const message =
-      err.message === "SLOT_NOT_AVAILABLE"
-        ? "Slot is not available"
-        : err.message === "ALREADY_BOOKED"
-          ? "Slot already booked"
-          : "Booking failed";
+      err.message === "SLOT_NOT_FOUND"
+        ? "Slot not found"
+        : err.message === "SLOT_NOT_AVAILABLE"
+          ? "Slot is not available"
+          : err.message === "ALREADY_BOOKED"
+            ? "You have already booked this slot"
+            : "Booking failed";
 
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status =
+      err.message === "UNAUTHORIZED" ? 401 : 400;
+
+    return NextResponse.json({ error: message }, { status });
   }
 }

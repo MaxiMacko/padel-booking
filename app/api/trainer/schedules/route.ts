@@ -82,8 +82,17 @@ export async function GET() {
     orderBy: {
       startTime: "asc",
     },
-    include: {
-      bookings: true,
+    select: {
+      id: true,
+      trainerId: true,
+      startTime: true,
+      endTime: true,
+      isAvailable: true,
+      deletedAt: true,
+      createdAt: true,
+      _count: {
+        select: { bookings: true },
+      },
     },
   });
 

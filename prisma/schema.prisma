@@ -21,6 +21,8 @@ model User {
   trainerSchedules TrainerSchedule[] @relation("TrainerSchedules")
   bookings         Booking[]         @relation("ClientBookings")
   sessions         Session[]
+
+  @@index([email])
 }
 
 enum UserRole {
@@ -42,6 +44,10 @@ model TrainerSchedule {
   createdAt DateTime @default(now())
 
   bookings Booking[]
+
+  @@index([trainerId, startTime])
+  @@index([isAvailable, deletedAt])
+  @@index([startTime, endTime])
 }
 
 model Booking {
@@ -54,6 +60,10 @@ model Booking {
 
   status    BookingStatus
   createdAt DateTime      @default(now())
+
+  @@index([clientId])
+  @@index([status, createdAt])
+  @@index([trainerScheduleId])
 }
 
 enum BookingStatus {
@@ -73,4 +83,5 @@ model Session {
   revokedAt DateTime?
 
   @@index([userId])
+  @@index([expiresAt, revokedAt])
 }
